@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Virtual environments
+venv/
+venv-offensive/
+.venv/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Logs / outputs
+logs/
+outputs/
+runs/
+checkpoints/
+*.log
+
+# Data (raw and processed)
+data/raw/
+data/processed/
+
+# Model files
+*.pt
+*.pth
+*.ckpt
+
+# Cache
+.cache/
+hf_cache/
