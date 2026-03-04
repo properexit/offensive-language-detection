@@ -39,6 +39,7 @@ def load_task_b_olid(split_ratio=0.2):
 
     df = _load_olid()
 
+    df = df[df["subtask_b"].notna()]
     df = df[df["subtask_b"] != "NULL"]
 
     df = df[["tweet", "subtask_b"]]
@@ -47,6 +48,8 @@ def load_task_b_olid(split_ratio=0.2):
         "UNT": 0,
         "TIN": 1
     })
+    
+    df = df.dropna(subset=["label"])
 
     df = df[["tweet", "label"]]
 
@@ -56,7 +59,8 @@ def load_task_b_olid(split_ratio=0.2):
 def load_task_c_olid(split_ratio=0.2):
 
     df = _load_olid()
-
+    
+    df = df[df["subtask_c"].notna()]
     df = df[df["subtask_c"] != "NULL"]
 
     df = df[["tweet", "subtask_c"]]
@@ -66,6 +70,8 @@ def load_task_c_olid(split_ratio=0.2):
         "GRP": 1,
         "OTH": 2
     })
+    
+    df = df.dropna(subset=["label"])
 
     df = df[["tweet", "label"]]
 
