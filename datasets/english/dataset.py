@@ -18,12 +18,16 @@ class TweetDataset(torch.utils.data.Dataset):
 
     def _clean(self, text):
         text = str(text)
+
         # remove RT prefix
         text = re.sub(r"^RT\s+@USER:\s*", "", text)
+
         # collapse repeated mentions
         text = re.sub(r"(@USER\s*){2,}", "@USER ", text)
+
         # replace special newline token
         text = text.replace("<LF>", " ")
+
         # remove extra spaces
         text = re.sub(r"\s+", " ", text).strip()
 
@@ -45,4 +49,5 @@ class TweetDataset(torch.utils.data.Dataset):
             "input_ids": encoded["input_ids"].squeeze(0),
             "attention_mask": encoded["attention_mask"].squeeze(0),
             "labels": torch.tensor(self.labels[idx], dtype=torch.long),
+            "texts": self.texts[idx]
         }
