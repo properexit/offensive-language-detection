@@ -17,7 +17,7 @@ class BaselineModel:
             ngram_range=(1, 2),
             max_features=20000
         )
-        self.clf = LogisticRegression(max_iter=1000)
+        self.clf = LogisticRegression(max_iter=1000, random_state=42)
 
     def majority_baseline(self, train_labels, dev_labels, target_names=None):
         # predict the most frequent label from training set
@@ -57,9 +57,9 @@ class BaselineModel:
                 dev_texts, dev_labels,
                 target_names=None):
 
-        # majority baseline first
+        # majority baseline 
         self.majority_baseline(train_labels, dev_labels, target_names)
 
-        # then classical ML baseline
+        # classical ML baseline
         self.fit(train_texts, train_labels)
         self.evaluate(dev_texts, dev_labels, target_names)

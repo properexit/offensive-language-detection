@@ -14,7 +14,7 @@ class TweetDataset(torch.utils.data.Dataset):
 
         # convert to lists and clean text
         self.texts = [self._clean(t) for t in list(texts)]
-        self.labels = list(labels)
+        self.labels = [int(l) for l in labels]
 
     def _clean(self, text):
         text = str(text)

@@ -13,8 +13,9 @@ import yaml
 
 from utils.device import get_device
 from training.train_transformer import train_transformer
+from training.train_multitask import train_multitask  
 
-from datasets.english.loaders_olid import (
+from datasets.english.loaders_olid import (   
     load_task_a_olid,
     load_task_b_olid,
     load_task_c_olid
@@ -23,7 +24,6 @@ from datasets.english.loaders_olid import (
 from datasets.arabic.loaders import load_task_a_arabic
 
 from utils.seed import set_seed
-set_seed(42)
 
 MODEL_MAP = {
     "english": "google/bert_uncased_L-2_H-128_A-2",
@@ -49,14 +49,36 @@ def main():
     parser.add_argument("--config", default="config/base.yaml")
     parser.add_argument("--device", default="auto")
 
+    # PEFT 
+    parser.add_argument(
+        "--peft",
+        choices=["lora", "freeze"],
+        default=None
+    )
+
+    # Multitask flag
+    parser.add_argument(
+        "--multitask",
+        action="store_true",
+        help="Run English multi-task (A + B)"
+    )
+
     args = parser.parse_args()
 
+    # multitask shortcut
+    if args.multitask:
+        print("Running multi-task training (English A + B)")
+        train_multitask()
+        return
+
     if args.lang is None or args.task is None:
-        parser.error("--lang and --task are required.")
+        parser.error("--lang and --task are required unless --multitask is used.")
 
     with open(args.config) as f:
         config = yaml.safe_load(f)
 
+    set_seed(config.get("seed", 42))
+    
     device = get_device(
         prefer_gpu=(args.device == "auto"),
         force_device=None if args.device == "auto" else args.device
@@ -65,7 +87,8 @@ def main():
     print("Device:", device)
     print("Lang:", args.lang,
           "| Task:", args.task,
-          "| Mode:", args.mode)
+          "| Mode:", args.mode,
+          "| PEFT:", args.peft)   
 
     # English
     if args.lang == "english":
@@ -77,6 +100,14 @@ def main():
         }
 
         train_df, dev_df = loader_map[args.task]()
+
+        train_df, dev_df = loader_map[args.task]()
+
+        # DEBUG: reduce dataset size for quick testing
+        # DEBUG_N = 200
+        # train_df = train_df.sample(n=min(DEBUG_N, len(train_df)), random_state=42)
+        # dev_df = dev_df.sample(n=min(DEBUG_N, len(dev_df)), random_state=42)
+
         num_labels = 2 if args.task != "C" else 3
 
         train_transformer(
@@ -88,7 +119,8 @@ def main():
             mode=args.mode,
             few_shot_k=args.k,
             config=config,
-            device=device
+            device=device,
+            peft_type=args.peft   
         )
         return
 
@@ -108,7 +140,8 @@ def main():
             mode="zero-shot",
             few_shot_k=None,
             config=config,
-            device=device
+            device=device,
+            peft_type=args.peft   
         )
         return
 
@@ -116,6 +149,11 @@ def main():
     print("Pretraining on English first...")
 
     en_train, en_dev = load_task_a_olid()
+
+    # DEBUG: reduce pretraining size
+    # DEBUG_N = 200
+    # en_train = en_train.sample(n=min(DEBUG_N, len(en_train)), random_state=42)
+    # en_dev = en_dev.sample(n=min(DEBUG_N, len(en_dev)), random_state=42)
 
     model = train_transformer(
         model_name=MODEL_MAP["arabic"],
@@ -127,12 +165,17 @@ def main():
         few_shot_k=None,
         config=config,
         device=device,
-        return_model=True
+        return_model=True,
+        peft_type=args.peft   
     )
 
     print("Fine-tuning on Arabic...")
 
     ar_train, ar_dev = load_task_a_arabic()
+
+    # DEBUG: reduce pretraining size
+    # ar_train = ar_train.sample(n=min(DEBUG_N, len(ar_train)), random_state=42)
+    # ar_dev = ar_dev.sample(n=min(DEBUG_N, len(ar_dev)), random_state=42)
 
     train_transformer(
         model_name=MODEL_MAP["arabic"],
@@ -144,7 +187,10 @@ def main():
         few_shot_k=args.k,
         config=config,
         device=device,
-        model=model
+        model=model,
+        peft_type=args.peft   
     )
+
+
 if __name__ == "__main__":
     main()

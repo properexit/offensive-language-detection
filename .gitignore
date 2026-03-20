@@ -29,9 +29,9 @@ runs/
 checkpoints/
 *.log
 
-# Data (raw and processed)
-data/raw/
-data/processed/
+# Data (keep structure but not raw files)
+data/
+!data/README.md
 
 # Model files
 *.pt
@@ -41,3 +41,10 @@ data/processed/
 # Cache
 .cache/
 hf_cache/
+huggingface/
+transformers_cache/
+
+# Misc
+*.swp
+*.swo
+lightning_logs/

@@ -31,6 +31,7 @@ def train_transformer(
     - English supervised training
     - Arabic zero-shot
     - Arabic few-shot
+    - PEFT (LoRA / freeze)
     """
 
     # read basic training settings from config
@@ -44,16 +45,29 @@ def train_transformer(
     if model is None:
         tokenizer, model = load_transformer(
             model_name,
-            num_labels
+            num_labels,
+            peft_type=peft_type   
         )
         model.to(device)
     else:
         tokenizer = load_transformer(
             model_name,
-            num_labels
+            num_labels,
+            peft_type=None        
         )[0]
 
-    optimizer = AdamW(model.parameters(), lr=lr)
+    # PEFT: freeze encoder if requested
+    if peft_type == "freeze":
+        print("Freezing encoder weights (only classifier will train)")
+        for name, param in model.named_parameters():
+            if "classifier" not in name:
+                param.requires_grad = False
+
+    # Optimizer only on trainable params
+    optimizer = AdamW(
+        filter(lambda p: p.requires_grad, model.parameters()),
+        lr=lr
+    )
 
     # choose dataset depending on language
     Dataset = TweetDataset if language == "english" else ArabicTweetDataset
@@ -128,7 +142,7 @@ def train_transformer(
             predictions = torch.argmax(logits, dim=1)
 
             preds.extend(predictions.cpu().numpy())
-            gold.extend(batch["labels"].numpy())
+            gold.extend(batch["labels"].cpu().numpy())
 
     evaluate_classification(gold, preds)
 

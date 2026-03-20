@@ -5,7 +5,7 @@ from sklearn.metrics import f1_score
 from transformers import AutoTokenizer
 
 from models.multitask_model import MultiTaskBERT
-from datasets.english.loaders import load_task_a_english, load_task_b_english
+from datasets.english.loaders_olid import load_task_a_olid, load_task_b_olid
 from datasets.english.dataset import TweetDataset
 from utils.device import get_device
 
@@ -27,8 +27,13 @@ def train_multitask(
     print("Using device:", device)
 
     # load datasets
-    train_a, dev_a = load_task_a_english()
-    train_b, _ = load_task_b_english()
+    train_a, dev_a = load_task_a_olid()
+    train_b, _ = load_task_b_olid()
+    
+    DEBUG_N = 200
+    train_a = train_a.sample(n=min(DEBUG_N, len(train_a)), random_state=42)
+    dev_a = dev_a.sample(n=min(DEBUG_N, len(dev_a)), random_state=42)
+    train_b = train_b.sample(n=min(DEBUG_N, len(train_b)), random_state=42)
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
@@ -37,7 +42,9 @@ def train_multitask(
     dev_a = dev_a.reset_index(drop=True)
 
     # build mapping from text → Task B label
-    b_label_map = dict(zip(train_b["tweet"], train_b["label"]))
+    temp_dataset = TweetDataset(train_b["tweet"], train_b["label"], tokenizer) 
+    cleaned_texts = [temp_dataset[i]["texts"] for i in range(len(temp_dataset))]
+    b_label_map = dict(zip(cleaned_texts, train_b["label"]))
 
     train_dataset = TweetDataset(train_a["tweet"], train_a["label"], tokenizer)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
@@ -77,13 +84,15 @@ def train_multitask(
 
                 for text, is_off in zip(batch_texts, off_mask.cpu()):
                     if is_off:
-                        labels_b.append(b_label_map.get(text, 0))
+                        if text in b_label_map:
+                            labels_b.append(b_label_map[text])
 
-                labels_b = torch.tensor(labels_b).to(device)
-
-                loss_b = loss_fn(logits_b[off_mask], labels_b)
-
-                loss = loss_a + lambda_b * loss_b
+                if len(labels_b) > 0:
+                    labels_b = torch.tensor(labels_b).to(device)
+                    loss_b = loss_fn(logits_b[off_mask][:len(labels_b)], labels_b)
+                    loss = loss_a + lambda_b * loss_b
+                else:
+                    loss = loss_a
             else:
                 loss = loss_a
 
@@ -92,7 +101,7 @@ def train_multitask(
 
             total_loss += loss.item()
 
-        print("Epoch", epoch + 1, "loss:", round(total_loss, 4))
+        print("Epoch", epoch + 1, "loss:", round(total_loss / len(train_loader), 4))
 
     # evaluation (Task A)
     model.eval()
