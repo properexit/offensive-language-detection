@@ -103,8 +103,6 @@ def main():
 
         train_df, dev_df = loader_map[args.task]()
 
-        train_df, dev_df = loader_map[args.task]()
-
         # DEBUG: reduce dataset size for quick testing
         # DEBUG_N = 200
         # train_df = train_df.sample(n=min(DEBUG_N, len(train_df)), random_state=42)
