@@ -1,7 +1,8 @@
-torch==2.10.0
-transformers==5.2.0
-peft==0.18.1
-scikit-learn==1.8.0
-pandas==3.0.1
-PyYAML==6.0.3
-tqdm==4.67.3
+torch>=2.0
+transformers>=4.35,<5.0
+peft>=0.10
+scikit-learn>=1.2
+pandas>=1.5
+numpy>=1.23
+PyYAML>=6.0
+tqdm>=4.60
