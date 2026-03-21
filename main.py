@@ -24,9 +24,11 @@ from datasets.english.loaders_olid import (
 from datasets.arabic.loaders import load_task_a_arabic
 
 from utils.seed import set_seed
+from utils.checkpoint import save_model
 
 MODEL_MAP = {
     "english": "google/bert_uncased_L-2_H-128_A-2",
+    "english_arabic": "xlm-roberta-base",
     "arabic": "xlm-roberta-base"
 }
 
@@ -110,7 +112,7 @@ def main():
 
         num_labels = 2 if args.task != "C" else 3
 
-        train_transformer(
+        model = train_transformer(
             model_name=MODEL_MAP["english"],
             train_df=train_df,
             dev_df=dev_df,
@@ -120,8 +122,12 @@ def main():
             few_shot_k=args.k,
             config=config,
             device=device,
+            return_model=True,
             peft_type=args.peft   
         )
+
+        save_model(model, args, config)
+
         return
 
     # Arabic (Task A only)
@@ -131,7 +137,7 @@ def main():
     if args.mode == "zero-shot":
         train_df, dev_df = load_task_a_arabic()
 
-        train_transformer(
+        modelZ = train_transformer(
             model_name=MODEL_MAP["arabic"],
             train_df=train_df,
             dev_df=dev_df,
@@ -141,8 +147,12 @@ def main():
             few_shot_k=None,
             config=config,
             device=device,
+            return_model=True,
             peft_type=args.peft   
         )
+
+        save_model(modelZ, args, config)
+
         return
 
     # few-shot with English pretraining
@@ -155,8 +165,8 @@ def main():
     # en_train = en_train.sample(n=min(DEBUG_N, len(en_train)), random_state=42)
     # en_dev = en_dev.sample(n=min(DEBUG_N, len(en_dev)), random_state=42)
 
-    model = train_transformer(
-        model_name=MODEL_MAP["arabic"],
+    modelE = train_transformer(
+        model_name=MODEL_MAP["english_arabic"],
         train_df=en_train,
         dev_df=en_dev,
         num_labels=2,
@@ -177,7 +187,7 @@ def main():
     # ar_train = ar_train.sample(n=min(DEBUG_N, len(ar_train)), random_state=42)
     # ar_dev = ar_dev.sample(n=min(DEBUG_N, len(ar_dev)), random_state=42)
 
-    train_transformer(
+    modelEA = train_transformer(
         model_name=MODEL_MAP["arabic"],
         train_df=ar_train,
         dev_df=ar_dev,
@@ -187,9 +197,12 @@ def main():
         few_shot_k=args.k,
         config=config,
         device=device,
-        model=model,
+        model=modelE,
+        return_model=True,
         peft_type=args.peft   
     )
+
+    save_model(modelEA, args, config)
 
 
 if __name__ == "__main__":

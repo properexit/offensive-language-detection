@@ -21,9 +21,15 @@ def load_task_a_arabic(split_ratio=0.2):
 
             tweet = parts[1]
             label = parts[2]
-
-            tweets.append(tweet.replace("<LF>", " "))
-            labels.append(1 if label == "OFF" else 0)
+            
+            if label == "OFF":
+                tweets.append(tweet.replace("<LF>", " "))
+                labels.append(1)
+            elif label == "NOT":
+                tweets.append(tweet.replace("<LF>", " "))
+                labels.append(0)
+            else:
+                continue
 
     df = pd.DataFrame({
         "tweet": tweets,

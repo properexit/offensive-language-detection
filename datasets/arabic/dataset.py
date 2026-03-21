@@ -38,9 +38,11 @@ class ArabicTweetDataset(torch.utils.data.Dataset):
             max_length=self.max_len,
             return_tensors="pt"
         )
+        label = int(self.labels[idx])
+        assert label in [0, 1], f"Invalid label: {label}"
 
         return {
             "input_ids": encoded["input_ids"].squeeze(0),
             "attention_mask": encoded["attention_mask"].squeeze(0),
-            "labels": torch.tensor(self.labels[idx], dtype=torch.long),
+            "labels": torch.tensor(label, dtype=torch.long),
         }
