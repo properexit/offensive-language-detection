@@ -1,0 +1,15 @@
+venv/
+venv-offensive/
+__pycache__/
+*.pyc
+
+data/
+checkpoints/
+outputs/
+runs/
+
+.cache/
+hf_cache/
+
+.ipynb_checkpoints/
+.DS_Store
