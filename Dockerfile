@@ -1,10 +1,15 @@
-FROM python:3.10
+FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY . /app
+# install dependencies 
+COPY requirements.txt .
 
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
+# copy project
+COPY . .
+
+# default run 
 CMD ["python", "main.py", "--lang", "english", "--task", "A", "--config", "config/base.yaml"]
