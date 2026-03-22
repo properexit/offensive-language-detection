@@ -228,8 +228,8 @@ generated during training
 
 ### Multitask
 
--   0.41 Macro F1 (not effective)
-
+-   0.71 Macro F1 
+-   Comparable to single-task performance but does not outperform it
 ------------------------------------------------------------------------
 
 ### Arabic Task A
@@ -254,7 +254,7 @@ Few-shot: - k=1000 -\> 0.78 - k=2000 -\> 0.81 - k=3000 -\> 0.85
 
 -   Transformer models outperform classical baselines
 -   Class weighting is not always beneficial
--   Multitask learning did not improve performance
+-   Multitask learning did not provide additional gains
 -   Cross-lingual transfer is effective for Arabic
 -   Performance improves significantly with more Arabic data
 -   PEFT methods trade performance for efficiency
