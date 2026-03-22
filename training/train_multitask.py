@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, accuracy_score
 from transformers import AutoTokenizer
 
 from models.multitask_model import MultiTaskBERT
@@ -30,10 +30,10 @@ def train_multitask(
     train_a, dev_a = load_task_a_olid()
     train_b, _ = load_task_b_olid()
     
-    DEBUG_N = 200
-    train_a = train_a.sample(n=min(DEBUG_N, len(train_a)), random_state=42)
-    dev_a = dev_a.sample(n=min(DEBUG_N, len(dev_a)), random_state=42)
-    train_b = train_b.sample(n=min(DEBUG_N, len(train_b)), random_state=42)
+    # DEBUG_N = 200
+    # train_a = train_a.sample(n=min(DEBUG_N, len(train_a)), random_state=42)
+    # dev_a = dev_a.sample(n=min(DEBUG_N, len(dev_a)), random_state=42)
+    # train_b = train_b.sample(n=min(DEBUG_N, len(train_b)), random_state=42)
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
@@ -123,5 +123,6 @@ def train_multitask(
             preds.extend(predictions.cpu().numpy())
             gold.extend(labels.cpu().numpy())
 
-    print("Task A macro F1:",
-          f1_score(gold, preds, average="macro"))
+    print("Task A macro F1:", f1_score(gold, preds, average="macro"))
+    print("Accuracy:", round(accuracy_score(gold, preds), 4))
+    print("F1 per class:", f1_score(gold, preds, average=None))
