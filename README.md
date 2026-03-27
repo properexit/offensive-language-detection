@@ -42,21 +42,65 @@ pip install -r requirements.txt
 
 ### Pull prebuilt image
 
-``` bash
+```bash
 docker pull properexit/offensive-project
 ```
 
-### Run
+------------------------------------------------------------------------
 
-``` bash
-docker run properexit/offensive-project
+Important: Dataset Mounting
+
+Datasets are NOT included in the Docker image.
+
+You must:
+1. Download dataset (see Section 3)
+2. Place it locally in:
+
+```
+data/raw/
 ```
 
-### With volume
+Docker will mount this folder into the container.
 
-``` bash
-docker run -v $(pwd):/app properexit/offensive-project
+------------------------------------------------------------------------
+
+### Run 
+
+**macOS / Linux**
+```bash
+docker run -v $(pwd)/data:/app/data properexit/offensive-project python /app/main.py --multitask --lang english
 ```
+
+**Windows (PowerShell)**
+```bash
+docker run -v ${PWD}/data:/app/data properexit/offensive-project python /app/main.py --multitask --lang english
+```
+
+**Windows (Alternative)**
+```bash
+docker run -v "C:\Users\YourName\project\data:/app/data" properexit/offensive-project python /app/main.py --multitask --lang english
+```
+
+------------------------------------------------------------------------
+
+### Run Other Experiments
+
+**Task A (English)**
+```bash
+docker run -v $(pwd)/data:/app/data properexit/offensive-project python /app/main.py --lang english --task A
+```
+
+**Arabic Few-shot**
+```bash
+docker run -v $(pwd)/data:/app/data properexit/offensive-project python /app/main.py --lang arabic --task A --mode few-shot --k 1000
+```
+
+------------------------------------------------------------------------
+
+### Notes
+- Volume mapping (-v) is required so Docker can access your dataset
+- Results and checkpoints will be saved locally
+- Works on both CPU and GPU (if available)
 
 ------------------------------------------------------------------------
 
