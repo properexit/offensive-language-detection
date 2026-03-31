@@ -309,10 +309,3 @@ Few-shot: - k=1000 -\> 0.78 - k=2000 -\> 0.81 - k=3000 -\> 0.85
 
 Tested with: - Python 3.10 - PyTorch - HuggingFace Transformers
 
-------------------------------------------------------------------------
-
-## 11. Authors
-
--   Jayesh Choudhari
--   Ayushi Garachh
--   Uday Kale
